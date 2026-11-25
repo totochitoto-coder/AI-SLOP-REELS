@@ -62,6 +62,25 @@ function person(color, h = 180) {
     <rect x="36" y="62" width="11" height="36" rx="5" fill="${color}"/>
   </svg>`;
 }
+function girl(color, h = 180) {
+  const w = h * 0.62, hair = '#b8326f';
+  return `<svg width="${w}" height="${h}" viewBox="0 0 62 100">
+    <ellipse cx="47" cy="12" rx="7" ry="11" fill="${hair}"/>
+    <circle cx="31" cy="13" r="14" fill="${hair}"/>
+    <circle cx="31" cy="15" r="11" fill="${color}"/>
+    <path d="M20 30 H42 Q46 30 47 34 L55 70 H7 L15 34 Q16 30 20 30 Z" fill="${color}"/>
+    <rect x="18" y="66" width="10" height="32" rx="5" fill="${color}"/>
+    <rect x="34" y="66" width="10" height="32" rx="5" fill="${color}"/>
+  </svg>`;
+}
+function hostTag(S, size = 26) {
+  return `<div style="background:${S.host.color};color:#0b0c0e;font-weight:900;font-size:${size}px;padding:4px 18px;border-radius:999px;white-space:nowrap">${S.host.name}</div>`;
+}
+function hostBadge(S) {
+  return `<div class="abs" style="left:28px;top:34px;display:flex;align-items:center;gap:10px;transform:none">
+    <div style="width:44px;height:44px;border-radius:50%;background:#1d1f23;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border:2px solid ${S.host.color}">${girl(S.host.color, 50)}</div>
+    ${hostTag(S, 20)}</div>`;
+}
 function popIn(lt, s, d = 0.45) { const p = inn(lt, s, d); return { op: clamp(p * 2), s: back(p) }; }
 function fadeUp(lt, s, d = 0.4) { const p = ease(inn(lt, s, d)); return { op: p, ty: (1 - p) * 30 }; }
 
@@ -91,8 +110,12 @@ function vsPair(S, lt, start, y = 640, size = 200) {
 
 const SCENES = {
   vs_intro(S, sc, lt) {
-    return el(`<div class="headline" style="color:var(--green)">${sc.headline}</div>`, 360, 380, fadeUp(lt, 0.1))
-      + vsPair(S, lt, 0.5);
+    const bub = `<div style="position:relative;background:#fff;color:#0b0c0e;font-weight:900;font-size:34px;padding:12px 26px;border-radius:26px;white-space:nowrap">問你呀～
+      <div style="position:absolute;left:24px;bottom:-18px;border-left:12px solid transparent;border-right:16px solid transparent;border-top:22px solid #fff"></div></div>`;
+    return el(girl(S.host.color, 260), 330, 500, popIn(lt, 0.1))
+      + el(hostTag(S, 34), 330, 670, popIn(lt, 0.3))
+      + el(bub, 520, 340, { ...popIn(lt, 0.6), rot: -4 })
+      + vsPair(S, lt, (sc.tokenTimes ? sc.tokenTimes[5] : 1.2), 920, 150);
   },
   guess(S, sc, lt) {
     const n = 3 - Math.floor(lt / (sc.dur / 3));
@@ -110,7 +133,7 @@ const SCENES = {
       h += el(`<div style="width:190px;height:220px;border:4px dashed #555a62;border-radius:10px"></div>`, 360, 475, b)
         + el(`<div class="label" style="color:#8b9098">${sc.sub}</div>`, 360, 620, fadeUp(lt, 0.6));
     }
-    h += el(`<div class="big" style="color:${side.color}">${sc.prefix}${fmt(sc.value * p)}</div>`, 360, 780, fadeUp(lt, 0.5))
+    h += el(`<div class="big" style="color:${side.color}">${sc.prefix}${fmt(sc.value * p)}</div>`, 360, 780, fadeUp(lt, (sc.countTime ?? 0.6) - 0.1))
       + el(`<div class="label">${sc.label}</div>`, 360, 880, fadeUp(lt, 0.8));
     if (sc.tag) h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e">${sc.tag}</div>`, 360, 990, { ...popIn(lt, sc.cueTime ?? 2.4), rot: -3 });
     return h + `<div class="foot">${S.footnote}</div>`;
@@ -133,7 +156,7 @@ const SCENES = {
     return h + `<div class="foot">${S.footnote}</div>`;
   },
   bars(S, sc, lt) {
-    const base = 980, max = 520, scale = max / 6000;
+    const base = 980, max = 520, scale = max / (Math.max(sc.a, sc.b + sc.bExtra) * 1.05);
     const ga = ease(inn(lt, 0.3, 1.0)), gb = ease(inn(lt, 0.7, 1.0)), gx = ease(inn(lt, 1.9, 0.8));
     const ha = sc.a * scale * ga, hb = sc.b * scale * gb, hx = sc.bExtra * scale * gx;
     const bar = (x, h, c, bottom) => `<div class="abs" style="left:${x - 75}px;top:${base - bottom - h}px;width:150px;height:${h}px;background:${c};border-radius:8px;transform:none"></div>`;
@@ -154,13 +177,14 @@ const SCENES = {
       <circle cx="50" cy="50" r="5" fill="#f4f4f5"/></svg>`;
     const p = ease(inn(lt, sc.countTime ?? 0.8, 1.4));
     return el(clock, 360, 480, popIn(lt, 0.1))
-      + el(`<div class="big" style="color:var(--red)">${fmt(sc.value * p)}</div>`, 360, 740, fadeUp(lt, 0.6))
+      + el(`<div class="big" style="color:var(--red)">${fmt(sc.value * p)}</div>`, 360, 740, fadeUp(lt, (sc.countTime ?? 0.8) - 0.1))
       + el(`<div class="label">${sc.label}</div>`, 360, 840, fadeUp(lt, 0.9))
       + el(`<div class="tag" style="background:#f5b83d;color:#0b0c0e;font-size:46px">${sc.punch}</div>`, 360, 990, { ...popIn(lt, sc.cueTime ?? 3.3), rot: 2 })
       + `<div class="foot">${S.footnote}</div>`;
   },
   outro(S, sc, lt) {
-    return el(`<div class="headline"><span style="color:var(--green)">慳錢</span> 定 <span style="color:var(--red)">慳時間</span>？</div>`, 360, 380, fadeUp(lt, 0.1))
+    return el(`<div class="headline">${sc.headline}</div>`, 360, 380, fadeUp(lt, 0.1))
+      + el(girl(S.host.color, 120), 300, 1150, popIn(lt, 2.0)) + el(hostTag(S, 28), 420, 1180, popIn(lt, 2.2))
       + vsPair(S, lt, 0.4)
       + el(`<div class="pill">${sc.pill1}</div>`, 360, 950, popIn(lt, 1.2))
       + el(`<div class="pill dark">${sc.pill2}</div>`, 360, 1020, popIn(lt, 1.6));
@@ -179,7 +203,8 @@ window.renderFrame = t => {
   // short crossfade at scene edges
   const fade = Math.min(clamp(lt / 0.15), clamp((sc.dur - lt) / 0.15));
   document.getElementById('layer').style.opacity = sc === S.scenes[S.scenes.length - 1] ? clamp(lt / 0.15) : fade;
-  document.getElementById('layer').innerHTML = SCENES[sc.type](S, sc, lt) + caption(sc, lt);
+  const badge = S.host && !['vs_intro', 'outro'].includes(sc.type) ? hostBadge(S) : '';
+  document.getElementById('layer').innerHTML = SCENES[sc.type](S, sc, lt) + badge + caption(sc, lt);
 };
 </script>
 </body>
