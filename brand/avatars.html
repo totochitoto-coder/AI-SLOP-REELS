@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1080px;background:#0b0c0e;font-family:"Noto Sans CJK HK",sans-serif}
+.c{width:1080px;height:1080px;position:relative;overflow:hidden;
+ background:radial-gradient(ellipse 80% 70% at 50% 15%,#2c2e34 0%,#141518 55%,#0b0c0e 100%);display:flex;align-items:center;justify-content:center}
+.box{position:relative;outline:14px solid #fff;outline-offset:26px;color:#fff;font-weight:900;line-height:1}
+.box:before,.box:after{content:"";position:absolute;width:52px;height:52px;background:#fff;border-radius:50%}
+.box:before{left:-66px;top:-66px}.box:after{right:-66px;bottom:-66px}
+</style></head><body><div class="c" id="c"></div>
+<script>
+const P=(c,h)=>`<svg width="${h*.62}" height="${h}" viewBox="0 0 62 100"><circle cx="31" cy="13" r="12" fill="${c}"/><rect x="9" y="29" width="44" height="40" rx="12" fill="${c}"/><rect x="15" y="62" width="11" height="36" rx="5" fill="${c}"/><rect x="36" y="62" width="11" height="36" rx="5" fill="${c}"/></svg>`;
+const V={
+ A:`<div style="display:flex;align-items:center;gap:60px;margin-top:40px">${P('#f5b83d',470)}<div style="font-size:150px;font-weight:900;color:#5b5f66">VS</div>${P('#3cc8e8',470)}</div>`,
+ B:`<div class="box" style="font-size:520px;padding:0 20px">估</div>`,
+ C:`<div class="box" style="font-size:560px;padding:0 40px;color:#34d27a">D</div>`,
+ D:`<div style="position:relative;margin-top:120px">${P('#f5b83d',560)}
+    <div style="position:absolute;left:250px;top:-250px;background:#fff;color:#0b0c0e;font-weight:900;font-size:230px;width:330px;height:280px;border-radius:70px;display:flex;align-items:center;justify-content:center">？
+    <div style="position:absolute;left:40px;bottom:-60px;width:0;height:0;border-left:30px solid transparent;border-right:50px solid transparent;border-top:80px solid #fff"></div></div></div>`
+};
+window.show=k=>{document.getElementById('c').innerHTML=V[k]};
+</script></body></html>
