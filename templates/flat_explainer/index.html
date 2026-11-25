@@ -27,7 +27,7 @@
   .pill { background: #f4f4f5; color: #111; font-weight: 700; font-size: 24px; padding: 10px 26px; border-radius: 999px; white-space: nowrap; }
   .pill.dark { background: #26282d; color: #e6e7ea; }
   .big { font-size: 140px; font-weight: 900; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .foot { position: absolute; bottom: 70px; left: 0; right: 0; text-align: center; font-size: 18px; color: #5c6067; }
+  .foot { position: absolute; bottom: 250px; left: 0; right: 0; text-align: center; font-size: 18px; color: #5c6067; }
   .vs { font-size: 64px; font-weight: 900; color: #5b5f66; }
   .tag { font-size: 34px; font-weight: 900; padding: 8px 22px; border-radius: 12px; white-space: nowrap; }
 </style>
@@ -137,7 +137,7 @@ const SCENES = {
     }
     h += el(`<div class="big" style="color:${side.color}">${sc.prefix}${fmt(sc.value * p)}</div>`, 360, 780, fadeUp(lt, (sc.countTime ?? 0.6) - 0.1))
       + el(`<div class="label">${sc.label}</div>`, 360, 880, fadeUp(lt, 0.8));
-    if (sc.tag) h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e">${sc.tag}</div>`, 360, 990, { ...popIn(lt, sc.cueTime ?? 2.4), rot: -3 });
+    if (sc.tag) h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e">${sc.tag}</div>`, 360, 955, { ...popIn(lt, sc.cueTime ?? 2.4), rot: -3 });
     return h + `<div class="foot">${S.footnote}</div>`;
   },
   route(S, sc, lt) {
@@ -158,7 +158,7 @@ const SCENES = {
     return h + `<div class="foot">${S.footnote}</div>`;
   },
   bars(S, sc, lt) {
-    const base = 980, max = 520, scale = max / (Math.max(sc.a, sc.b + sc.bExtra) * 1.05);
+    const base = 860, max = 480, scale = max / (Math.max(sc.a, sc.b + sc.bExtra) * 1.05);
     const ga = ease(inn(lt, 0.3, 1.0)), gb = ease(inn(lt, 0.7, 1.0)), gx = ease(inn(lt, 1.9, 0.8));
     const ha = sc.a * scale * ga, hb = sc.b * scale * gb, hx = sc.bExtra * scale * gx;
     const bar = (x, h, c, bottom) => `<div class="abs" style="left:${x - 75}px;top:${base - bottom - h}px;width:150px;height:${h}px;background:${c};border-radius:8px;transform:none"></div>`;
@@ -167,8 +167,8 @@ const SCENES = {
       + el(`<div class="headline" style="font-size:40px;color:${S.sides.b.color}">$${fmt(sc.b * gb + sc.bExtra * gx)}</div>`, 500, base - hb - hx - 46, { op: gb });
     if (gx > 0.3) h += el(`<div class="label" style="color:#fff;letter-spacing:2px">+${sc.bExtraLabel}</div>`, 500, base - hb - hx / 2 - 3, { op: gx });
     h += el(`<div class="label">${S.sides.a.label}</div>`, 220, base + 40, { op: 1 }) + el(`<div class="label">${S.sides.b.label}</div>`, 500, base + 40, { op: 1 });
-    h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e;font-size:42px">${sc.result}</div>`, 360, 1110, { ...popIn(lt, sc.cueTime ?? 3.3), rot: -2 });
-    return h + `<div class="foot" style="bottom:40px">${S.footnote}</div>`;
+    h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e;font-size:42px">${sc.result}</div>`, 360, 975, { ...popIn(lt, sc.cueTime ?? 3.3), rot: -2 });
+    return h + `<div class="foot">${S.footnote}</div>`;
   },
   clock(S, sc, lt) {
     const ang = lt * 360;
@@ -181,15 +181,15 @@ const SCENES = {
     return el(clock, 360, 480, popIn(lt, 0.1))
       + el(`<div class="big" style="color:var(--red)">${fmt(sc.value * p)}</div>`, 360, 740, fadeUp(lt, (sc.countTime ?? 0.8) - 0.1))
       + el(`<div class="label">${sc.label}</div>`, 360, 840, fadeUp(lt, 0.9))
-      + el(`<div class="tag" style="background:#f5b83d;color:#0b0c0e;font-size:46px">${sc.punch}</div>`, 360, 990, { ...popIn(lt, sc.cueTime ?? 3.3), rot: 2 })
+      + el(`<div class="tag" style="background:#f5b83d;color:#0b0c0e;font-size:46px">${sc.punch}</div>`, 360, 955, { ...popIn(lt, sc.cueTime ?? 3.3), rot: 2 })
       + `<div class="foot">${S.footnote}</div>`;
   },
   outro(S, sc, lt) {
     return el(`<div class="headline">${sc.headline}</div>`, 360, 380, fadeUp(lt, 0.1))
       + (S.host ? el(girl(S.host.color, 120), 300, 1150, popIn(lt, 2.0)) + el(hostTag(S, 28), 420, 1180, popIn(lt, 2.2)) : '')
-      + vsPair(S, lt, 0.4)
-      + el(`<div class="pill">${sc.pill1}</div>`, 360, 950, popIn(lt, 1.2))
-      + el(`<div class="pill dark">${sc.pill2}</div>`, 360, 1020, popIn(lt, 1.6));
+      + vsPair(S, lt, 0.4, 580, 180)
+      + el(`<div class="pill">${sc.pill1}</div>`, 360, 870, popIn(lt, 1.2))
+      + el(`<div class="pill dark">${sc.pill2}</div>`, 360, 935, popIn(lt, 1.6));
   }
 };
 

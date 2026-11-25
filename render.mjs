@@ -17,7 +17,8 @@ const script = JSON.parse(readFileSync(scriptPath, 'utf8'));
 mkdirSync(dirname(outPath), { recursive: true });
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 720, height: 1280 } });
+// CSS layout is 720x1280; render at 1.5x for a 1080x1920 output
+const page = await browser.newPage({ viewport: { width: 720, height: 1280 }, deviceScaleFactor: 1.5 });
 await page.goto(pathToFileURL(resolve(here, 'templates/flat_explainer/index.html')).href);
 await page.evaluate(() => document.fonts.ready);
 const total = await page.evaluate(s => window.setScript(s), script);
