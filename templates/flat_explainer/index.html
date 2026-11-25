@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --bg: #0b0c0e; --fg: #f4f4f5; --dim: #6b6f76; --green: #34d27a; --red: #e5484d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 720px; height: 1280px; overflow: hidden; background: var(--bg); }
+  body { font-family: "Noto Sans CJK HK", "Noto Sans CJK TC", sans-serif; color: var(--fg); }
+  #stage { position: relative; width: 720px; height: 1280px; overflow: hidden;
+    background: radial-gradient(ellipse 70% 45% at 50% 0%, #2a2c31 0%, #131417 55%, #0b0c0e 100%); }
+  #stars, #layer { position: absolute; inset: 0; }
+  .star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; }
+  .abs { position: absolute; transform-origin: 50% 50%; }
+  .caption { position: absolute; left: 40px; right: 40px; top: 120px; text-align: center;
+    font-size: 40px; font-weight: 700; line-height: 1.5; }
+  .tok { display: inline-block; padding: 0 6px; margin: 0 2px; color: var(--dim); position: relative; }
+  .tok.past { color: var(--fg); }
+  .tok.cur { color: #fff; outline: 2px solid rgba(255,255,255,.9); outline-offset: 2px; }
+  .tok.cur::before, .tok.cur::after { content: ""; position: absolute; width: 7px; height: 7px; background: #fff; border-radius: 50%; }
+  .tok.cur::before { left: -6px; top: -6px; }
+  .tok.cur::after { right: -6px; bottom: -6px; }
+  .label { font-size: 22px; font-weight: 700; letter-spacing: 4px; color: #c9ccd1; white-space: nowrap; }
+  .headline { font-size: 50px; font-weight: 900; white-space: nowrap; }
+  .pill { background: #f4f4f5; color: #111; font-weight: 700; font-size: 24px; padding: 10px 26px; border-radius: 999px; white-space: nowrap; }
+  .pill.dark { background: #26282d; color: #e6e7ea; }
+  .big { font-size: 140px; font-weight: 900; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .foot { position: absolute; bottom: 70px; left: 0; right: 0; text-align: center; font-size: 18px; color: #5c6067; }
+  .vs { font-size: 64px; font-weight: 900; color: #5b5f66; }
+  .tag { font-size: 34px; font-weight: 900; padding: 8px 22px; border-radius: 12px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="stage"><div id="stars"></div><div id="layer"></div></div>
+<script>
+const W = 720, H = 1280;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ease = x => 1 - Math.pow(1 - clamp(x), 3);
+const back = x => { x = clamp(x); const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const inn = (lt, s, d = 0.35) => (lt - s) / d;
+const fmt = n => Math.round(n).toLocaleString('en-US');
+
+// deterministic stars
+(function () {
+  let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  let h = '';
+  for (let i = 0; i < 70; i++) h += `<div class="star" style="left:${rnd() * W}px;top:${rnd() * H}px;opacity:${0.08 + rnd() * 0.25}"></div>`;
+  document.getElementById('stars').innerHTML = h;
+})();
+
+function el(html, x, y, { op = 1, s = 1, ty = 0, rot = 0 } = {}) {
+  return `<div class="abs" style="left:${x}px;top:${y + ty}px;opacity:${op};transform:translate(-50%,-50%) scale(${s}) rotate(${rot}deg)">${html}</div>`;
+}
+function person(color, h = 180) {
+  const w = h * 0.62;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 62 100">
+    <circle cx="31" cy="13" r="12" fill="${color}"/>
+    <rect x="9" y="29" width="44" height="40" rx="12" fill="${color}"/>
+    <rect x="15" y="62" width="11" height="36" rx="5" fill="${color}"/>
+    <rect x="36" y="62" width="11" height="36" rx="5" fill="${color}"/>
+  </svg>`;
+}
+function popIn(lt, s, d = 0.45) { const p = inn(lt, s, d); return { op: clamp(p * 2), s: back(p) }; }
+function fadeUp(lt, s, d = 0.4) { const p = ease(inn(lt, s, d)); return { op: p, ty: (1 - p) * 30 }; }
+
+function caption(tokens, lt, dur) {
+  const span = dur * 0.85, n = tokens.length;
+  const cur = Math.min(n - 1, Math.floor(lt / (span / n)));
+  return `<div class="caption">` + tokens.map((t, i) =>
+    `<span class="tok ${i < cur ? 'past' : i === cur ? 'cur' : ''}">${t}</span>`).join('') + `</div>`;
+}
+
+function vsPair(S, lt, start, y = 640, size = 200) {
+  const A = S.sides.a, B = S.sides.b;
+  const pa = popIn(lt, start), pb = popIn(lt, start + 0.25), pv = popIn(lt, start + 0.45);
+  return el(person(A.color, size), 210, y, pa) + el(`<div class="label">${A.label}</div>`, 210, y + size / 2 + 40, pa)
+    + el(`<div class="vs">VS</div>`, 360, y, pv)
+    + el(person(B.color, size), 510, y, pb) + el(`<div class="label">${B.label}</div>`, 510, y + size / 2 + 40, pb);
+}
+
+const SCENES = {
+  vs_intro(S, sc, lt) {
+    return el(`<div class="headline" style="color:var(--green)">${sc.headline}</div>`, 360, 380, fadeUp(lt, 0.1))
+      + vsPair(S, lt, 0.5);
+  },
+  guess(S, sc, lt) {
+    const n = 3 - Math.floor(lt / (sc.dur / 3));
+    const p = ((lt / (sc.dur / 3)) % 1);
+    return vsPair(S, lt + 5, 0)
+      + el(`<div class="big" style="font-size:110px;color:#fff">${Math.max(1, n)}</div>`, 360, 380, { op: 1 - p * 0.6, s: 1.25 - p * 0.25 })
+      + el(`<div class="pill">${sc.pill}</div>`, 360, 920, popIn(lt, 0.3));
+  },
+  stat(S, sc, lt) {
+    const side = S.sides[sc.side];
+    const p = ease(inn(lt, 0.6, 1.4));
+    let h = el(person(side.color, 170), 360, 470, popIn(lt, 0.1));
+    if (sc.side === 'a') {
+      const b = popIn(lt, 0.35);
+      h += el(`<div style="width:190px;height:220px;border:4px dashed #555a62;border-radius:10px"></div>`, 360, 475, b)
+        + el(`<div class="label" style="color:#8b9098">${sc.sub}</div>`, 360, 620, fadeUp(lt, 0.6));
+    }
+    h += el(`<div class="big" style="color:${side.color}">${sc.prefix}${fmt(sc.value * p)}</div>`, 360, 780, fadeUp(lt, 0.5))
+      + el(`<div class="label">${sc.label}</div>`, 360, 880, fadeUp(lt, 0.8));
+    if (sc.tag) h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e">${sc.tag}</div>`, 360, 990, { ...popIn(lt, 2.4), rot: -3 });
+    return h + `<div class="foot">${S.footnote}</div>`;
+  },
+  route(S, sc, lt) {
+    const y = 560, x1 = 130, x2 = 590, xm = 360;
+    const draw = ease(inn(lt, 0.3, 1.2));
+    const t = ((lt - 1.2) / 1.6) % 2; const tt = lt < 1.2 ? 0 : (t < 1 ? t : 2 - t);
+    const dotX = x1 + (x2 - x1) * ease(tt);
+    let h = `<svg class="abs" style="left:0;top:0" width="${W}" height="${H}">
+        <line x1="${x1}" y1="${y}" x2="${x1 + (x2 - x1) * draw}" y2="${y}" stroke="#3a3d44" stroke-width="10" stroke-linecap="round"/>
+        <line x1="${x1}" y1="${y}" x2="${x1 + (x2 - x1) * draw}" y2="${y}" stroke="${S.sides.b.color}" stroke-width="3" stroke-dasharray="10 12"/>
+      </svg>`;
+    const node = (x, lbl, c, s) => el(`<div style="width:34px;height:34px;border-radius:50%;background:${c};box-shadow:0 0 24px ${c}"></div>`, x, y, popIn(lt, s))
+      + el(`<div class="label" style="letter-spacing:2px;font-size:28px">${lbl}</div>`, x, y + 60, popIn(lt, s));
+    h += node(x1, sc.from, S.sides.b.color, 0.2) + node(xm, sc.via, '#8b9098', 0.8) + node(x2, sc.to, S.sides.a.color, 1.3);
+    if (lt > 1.2) h += el(person('#fff', 70), dotX, y - 70, { op: 1 });
+    h += el(`<div class="headline" style="font-size:44px">${sc.line1}</div>`, 360, 800, fadeUp(lt, 2.0))
+      + el(`<div class="headline" style="font-size:56px;color:var(--red)">${sc.line2}</div>`, 360, 900, popIn(lt, 3.4));
+    return h + `<div class="foot">${S.footnote}</div>`;
+  },
+  bars(S, sc, lt) {
+    const base = 980, max = 520, scale = max / 6000;
+    const ga = ease(inn(lt, 0.3, 1.0)), gb = ease(inn(lt, 0.7, 1.0)), gx = ease(inn(lt, 1.9, 0.8));
+    const ha = sc.a * scale * ga, hb = sc.b * scale * gb, hx = sc.bExtra * scale * gx;
+    const bar = (x, h, c, bottom) => `<div class="abs" style="left:${x - 75}px;top:${base - bottom - h}px;width:150px;height:${h}px;background:${c};border-radius:8px;transform:none"></div>`;
+    let h = bar(220, ha, S.sides.a.color, 0) + bar(500, hb, S.sides.b.color, 0) + bar(500, hx, '#e5484d', hb + (hx > 0 ? 6 : 0));
+    h += el(`<div class="headline" style="font-size:40px;color:${S.sides.a.color}">$${fmt(sc.a * ga)}</div>`, 220, base - ha - 40, { op: ga })
+      + el(`<div class="headline" style="font-size:40px;color:${S.sides.b.color}">$${fmt(sc.b * gb + sc.bExtra * gx)}</div>`, 500, base - hb - hx - 46, { op: gb });
+    if (gx > 0.3) h += el(`<div class="label" style="color:#fff;letter-spacing:2px">+${sc.bExtraLabel}</div>`, 500, base - hb - hx / 2 - 3, { op: gx });
+    h += el(`<div class="label">${S.sides.a.label}</div>`, 220, base + 40, { op: 1 }) + el(`<div class="label">${S.sides.b.label}</div>`, 500, base + 40, { op: 1 });
+    h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e;font-size:42px">${sc.result}</div>`, 360, 1110, { ...popIn(lt, 3.3), rot: -2 });
+    return h + `<div class="foot" style="bottom:40px">${S.footnote}</div>`;
+  },
+  clock(S, sc, lt) {
+    const ang = lt * 360;
+    const clock = `<svg width="200" height="200" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#f4f4f5" stroke-width="6"/>
+      <line x1="50" y1="50" x2="50" y2="20" stroke="#e5484d" stroke-width="6" stroke-linecap="round" transform="rotate(${ang} 50 50)"/>
+      <line x1="50" y1="50" x2="70" y2="50" stroke="#f4f4f5" stroke-width="6" stroke-linecap="round" transform="rotate(${ang / 12} 50 50)"/>
+      <circle cx="50" cy="50" r="5" fill="#f4f4f5"/></svg>`;
+    const p = ease(inn(lt, 0.8, 1.6));
+    return el(clock, 360, 480, popIn(lt, 0.1))
+      + el(`<div class="big" style="color:var(--red)">${fmt(sc.value * p)}</div>`, 360, 740, fadeUp(lt, 0.6))
+      + el(`<div class="label">${sc.label}</div>`, 360, 840, fadeUp(lt, 0.9))
+      + el(`<div class="tag" style="background:#f5b83d;color:#0b0c0e;font-size:46px">${sc.punch}</div>`, 360, 990, { ...popIn(lt, 3.3), rot: 2 })
+      + `<div class="foot">${S.footnote}</div>`;
+  },
+  outro(S, sc, lt) {
+    return el(`<div class="headline"><span style="color:var(--green)">慳錢</span> 定 <span style="color:var(--red)">慳時間</span>？</div>`, 360, 380, fadeUp(lt, 0.1))
+      + vsPair(S, lt, 0.4)
+      + el(`<div class="pill">${sc.pill1}</div>`, 360, 950, popIn(lt, 1.2))
+      + el(`<div class="pill dark">${sc.pill2}</div>`, 360, 1020, popIn(lt, 1.6));
+  }
+};
+
+window.setScript = S => {
+  window.S = S; let t = 0;
+  S.scenes.forEach(sc => { sc.start = t; t += sc.dur; });
+  window.TOTAL = t; return t;
+};
+window.renderFrame = t => {
+  const S = window.S;
+  const sc = S.scenes.find(s => t >= s.start && t < s.start + s.dur) || S.scenes[S.scenes.length - 1];
+  const lt = t - sc.start;
+  // short crossfade at scene edges
+  const fade = Math.min(clamp(lt / 0.15), clamp((sc.dur - lt) / 0.15));
+  document.getElementById('layer').style.opacity = sc === S.scenes[S.scenes.length - 1] ? clamp(lt / 0.15) : fade;
+  document.getElementById('layer').innerHTML = SCENES[sc.type](S, sc, lt) + caption(sc.caption, lt, sc.dur);
+};
+</script>
+</body>
+</html>
