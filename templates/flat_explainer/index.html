@@ -81,6 +81,24 @@ function hostBadge(S) {
     <div style="width:44px;height:44px;border-radius:50%;background:#1d1f23;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border:2px solid ${S.host.color}">${girl(S.host.color, 50)}</div>
     ${hostTag(S, 20)}</div>`;
 }
+
+function car(kind, color, w = 300) {
+  if (kind === 'sports') return `<svg width="${w}" height="${w * 0.42}" viewBox="0 0 200 84">
+    <path d="M8 62 Q10 44 38 38 L78 24 Q100 16 126 20 L162 34 Q192 38 194 58 L194 66 H8 Z" fill="${color}"/>
+    <path d="M84 30 L122 25 L150 38 H74 Z" fill="#0b0c0e" opacity=".55"/>
+    <rect x="176" y="44" width="16" height="6" rx="3" fill="#ffe9a8"/>
+    <circle cx="50" cy="66" r="15" fill="#1b1c20" stroke="#9aa0a8" stroke-width="5"/>
+    <circle cx="156" cy="66" r="15" fill="#1b1c20" stroke="#9aa0a8" stroke-width="5"/></svg>`;
+  return `<svg width="${w}" height="${w * 0.45}" viewBox="0 0 200 90">
+    <path d="M8 66 L12 48 Q15 42 30 42 L56 42 L76 20 Q80 15 92 15 H134 Q146 15 152 22 L170 42 Q192 44 194 56 L194 70 H8 Z" fill="${color}"/>
+    <path d="M80 24 H110 V42 H64 Z" fill="#0b0c0e" opacity=".55"/><path d="M116 24 H142 L160 42 H116 Z" fill="#0b0c0e" opacity=".55"/>
+    <circle cx="50" cy="72" r="15" fill="#1b1c20" stroke="#9aa0a8" stroke-width="5"/>
+    <circle cx="156" cy="72" r="15" fill="#1b1c20" stroke="#9aa0a8" stroke-width="5"/></svg>`;
+}
+function bubble(text, size = 36, bg = '#fff', fg = '#0b0c0e') {
+  return `<div style="position:relative;background:${bg};color:${fg};font-weight:900;font-size:${size}px;padding:12px 28px;border-radius:26px;white-space:nowrap">${text}
+    <div style="position:absolute;left:30px;bottom:-18px;border-left:12px solid transparent;border-right:16px solid transparent;border-top:22px solid ${bg}"></div></div>`;
+}
 function popIn(lt, s, d = 0.45) { const p = inn(lt, s, d); return { op: clamp(p * 2), s: back(p) }; }
 function fadeUp(lt, s, d = 0.4) { const p = ease(inn(lt, s, d)); return { op: p, ty: (1 - p) * 30 }; }
 
@@ -130,14 +148,67 @@ const SCENES = {
     const side = S.sides[sc.side];
     const p = ease(inn(lt, sc.countTime ?? 0.6, 1.2));
     let h = el(person(side.color, 170), 360, 470, popIn(lt, 0.1));
-    if (sc.side === 'a') {
+    if (sc.box) {
       const b = popIn(lt, 0.35);
       h += el(`<div style="width:190px;height:220px;border:4px dashed #555a62;border-radius:10px"></div>`, 360, 475, b)
         + el(`<div class="label" style="color:#8b9098">${sc.sub}</div>`, 360, 620, fadeUp(lt, 0.6));
     }
-    h += el(`<div class="big" style="color:${side.color}">${sc.prefix}${fmt(sc.value * p)}</div>`, 360, 780, fadeUp(lt, (sc.countTime ?? 0.6) - 0.1))
+    h += el(`<div class="big" style="color:${side.color};${sc.bigSize ? `font-size:${sc.bigSize}px` : ''}">${sc.prefix ?? ''}${fmt(sc.value * p)}</div>`, 360, 780, fadeUp(lt, (sc.countTime ?? 0.6) - 0.1))
       + el(`<div class="label">${sc.label}</div>`, 360, 880, fadeUp(lt, 0.8));
     if (sc.tag) h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e">${sc.tag}</div>`, 360, 955, { ...popIn(lt, sc.cueTime ?? 2.4), rot: -3 });
+    return h + `<div class="foot">${S.footnote}</div>`;
+  },
+
+  car_intro(S, sc, lt) {
+    const side = S.sides[sc.side];
+    let h = el(`<div class="headline" style="font-size:64px;color:${side.color}">${side.label}</div>`, 360, 300, fadeUp(lt, 0.1))
+      + el(person(side.color, 230), 210, 540, popIn(lt, 0.2))
+      + el(car(sc.car, side.color, 330), 480, 610, { ...popIn(lt, 0.5), ty: (1 - ease(inn(lt, 0.5, 0.6))) * 40 })
+      + el(`<div class="label" style="font-size:30px">${sc.sub}</div>`, 360, 740, fadeUp(lt, 0.8));
+    if (sc.counter) {
+      const p = ease(inn(lt, sc.countTime ?? 1.5, 1.0));
+      h += el(`<div class="big" style="font-size:120px;color:${side.color}">×${fmt(sc.counter * p)}</div>`, 300, 875, fadeUp(lt, (sc.countTime ?? 1.5) - 0.1))
+        + el(`<div class="label" style="font-size:34px;color:#fff">${sc.counterLabel}</div>`, 520, 885, fadeUp(lt, sc.countTime ?? 1.5));
+    }
+    if (sc.bubble) h += el(bubble(sc.bubble, 52), 380, 880, { ...popIn(lt, sc.cueTime ?? 2.5), rot: -4 });
+    return h + `<div class="foot">${S.footnote}</div>`;
+  },
+  ladder(S, sc, lt) {
+    const lv = sc.levels, n = lv.length, y0 = 945, step = 135;
+    const t0 = sc.countTime ?? 0.8, t1 = sc.cueTime ?? 2.6;
+    const p = ease(inn(lt, t0, Math.max(0.6, t1 - t0)));
+    const pos = p * (n - 1);
+    let h = el(`<div class="headline" style="font-size:52px">${sc.title}</div>`, 360, 300, fadeUp(lt, 0.1));
+    lv.forEach((name, i) => {
+      const y = y0 - i * step, on = pos >= i - 0.05, top = i === n - 1;
+      const c = top ? S.sides.a.color : '#3a3d44';
+      h += el(`<div style="width:${300 + i * 40}px;height:96px;border-radius:16px;background:${on ? c : '#1d1f23'};border:3px solid ${top ? c : '#4a4e56'};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:40px;color:${on && top ? '#fff' : on ? '#f4f4f5' : '#6b6f76'}">${name}</div>`, 420, y, popIn(lt, 0.2 + i * 0.12));
+    });
+    h += el(person('#f4f4f5', 110), 150, y0 - pos * step - 6, { op: clamp(inn(lt, 0.3, 0.3)) });
+    if (pos > n - 1.05) h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e">${sc.tag}</div>`, 420, y0 - (n - 1) * step - 110, { ...popIn(lt, t1), rot: -3 });
+    return h + `<div class="foot">${S.footnote}</div>`;
+  },
+  fanout(S, sc, lt) {
+    const cx = 360, cy = 560, r1 = 130, r2 = 225;
+    const p1 = ease(inn(lt, sc.cue1Time ?? 1.0, 1.0)), p2 = ease(inn(lt, sc.cue2Time ?? 3.0, 1.2));
+    const n1 = Math.round(50 * p1), n2 = Math.round(150 * p2);
+    let svg = `<svg class="abs" style="left:0;top:0;transform:none" width="${W}" height="${H}">`;
+    for (let j = 0; j < n2; j++) {
+      const i = Math.floor(j / 3), a = ((i + ((j % 3) - 1) * 0.3) / 50) * Math.PI * 2 - Math.PI / 2;
+      const a1 = (i / 50) * Math.PI * 2 - Math.PI / 2;
+      svg += `<line x1="${cx + r1 * Math.cos(a1)}" y1="${cy + r1 * Math.sin(a1)}" x2="${cx + r2 * Math.cos(a)}" y2="${cy + r2 * Math.sin(a)}" stroke="#3cc8e8" stroke-opacity=".25" stroke-width="1.5"/>
+        <circle cx="${cx + r2 * Math.cos(a)}" cy="${cy + r2 * Math.sin(a)}" r="6" fill="#3cc8e8"/>`;
+    }
+    for (let i = 0; i < n1; i++) {
+      const a = (i / 50) * Math.PI * 2 - Math.PI / 2;
+      svg += `<line x1="${cx}" y1="${cy}" x2="${cx + r1 * Math.cos(a)}" y2="${cy + r1 * Math.sin(a)}" stroke="#f4f4f5" stroke-opacity=".18" stroke-width="1.5"/>
+        <circle cx="${cx + r1 * Math.cos(a)}" cy="${cy + r1 * Math.sin(a)}" r="8" fill="#f4f4f5"/>`;
+    }
+    svg += `<circle cx="${cx}" cy="${cy}" r="26" fill="${S.sides.a.color}"/></svg>`;
+    let h = svg + el(`<div class="label" style="color:#fff;font-size:24px;letter-spacing:2px">${S.sides.a.label}</div>`, cx, cy + 48, { op: 1 })
+      + el(`<div class="headline" style="font-size:44px">${fmt(n1)} <span style="font-size:28px;color:#c9ccd1">個前度</span></div>`, 220, 850, { op: clamp(p1 * 3) })
+      + el(`<div class="headline" style="font-size:44px;color:#3cc8e8">${fmt(n2)} <span style="font-size:28px;color:#c9ccd1">個閨蜜</span></div>`, 500, 850, { op: clamp(p2 * 3) });
+    if (sc.bubble) h += el(bubble(sc.bubble, 34), 360, 945, { ...popIn(lt, sc.cueTime ?? 5), rot: -3 });
     return h + `<div class="foot">${S.footnote}</div>`;
   },
   route(S, sc, lt) {

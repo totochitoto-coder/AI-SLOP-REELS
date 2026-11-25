@@ -90,7 +90,7 @@ for n, sc in enumerate(scenes):
     sc["minDur"] = sc.get("minDur", sc["dur"])
     sc["dur"] = round(max(sc["minDur"], LEAD + voice_len + TAIL), 3)
     sc["tokenTimes"] = [round(LEAD + t, 3) for t in tt]
-    for k in ("cue", "cue1", "cue2", "count"):
+    for k in ("cue", "cue1", "cue2", "count"):  # token index -> spoken time
         if k in sc:
             sc[k + "Time"] = sc["tokenTimes"][sc[k]]
     track.append((t0 + LEAD, pcm))
