@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1920px;font-family:"Noto Sans CJK HK",sans-serif;color:#f4f4f5;background:#0b0c0e}
+.c{position:relative;width:1080px;height:1920px;overflow:hidden;
+ background:radial-gradient(ellipse 75% 45% at 50% 30%,#2c2e34 0%,#141518 55%,#0b0c0e 100%)}
+.a{position:absolute;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.t{font-weight:900;line-height:1.1}
+.box{display:inline-block;outline:6px solid #fff;outline-offset:10px;position:relative;padding:0 14px}
+.box:before,.box:after{content:"";position:absolute;width:20px;height:20px;background:#fff;border-radius:50%}
+.box:before{left:-26px;top:-26px}.box:after{right:-26px;bottom:-26px}
+.tag{display:inline-block;font-weight:900;padding:14px 40px;border-radius:22px}
+.lbl{font-weight:700;font-size:40px;letter-spacing:6px;color:#c9ccd1}
+</style></head><body><div class="c" id="c"></div>
+<script>
+const P=(c,h)=>`<svg width="${h*.62}" height="${h}" viewBox="0 0 62 100"><circle cx="31" cy="13" r="12" fill="${c}"/><rect x="9" y="29" width="44" height="40" rx="12" fill="${c}"/><rect x="15" y="62" width="11" height="36" rx="5" fill="${c}"/><rect x="36" y="62" width="11" height="36" rx="5" fill="${c}"/></svg>`;
+const pair=y=>`<div class="a" style="top:${y}px;display:flex;align-items:flex-end;gap:70px">
+  <div>${P('#f5b83d',360)}<div class="lbl" style="margin-top:22px">劏房</div></div>
+  <div class="t" style="font-size:120px;color:#5b5f66;margin-bottom:150px">VS</div>
+  <div>${P('#3cc8e8',360)}<div class="lbl" style="margin-top:22px">返深圳住</div></div></div>`;
+const V={
+ A:`<div class="a t" style="top:330px;font-size:64px;color:#34d27a">香港打工仔終極問題</div>
+    <div class="a t" style="top:460px;font-size:118px"><span style="color:#f5b83d">劏房</span> 定 <span style="color:#3cc8e8">深圳</span></div>
+    <div class="a t" style="top:640px;font-size:118px"><span class="box">邊個慳啲？</span></div>
+    ${pair(880)}
+    <div class="a" style="top:1420px"><span class="tag" style="background:#f4f4f5;color:#111;font-size:46px">計埋車錢……答案好意外 😳</span></div>`,
+ B:`<div class="a t" style="top:330px;font-size:100px"><span style="color:#f5b83d">劏房</span> vs <span style="color:#3cc8e8">深圳</span></div>
+    <div class="a t" style="top:500px;font-size:300px;color:#e5484d;letter-spacing:-6px">+$900</div>
+    <div class="a t" style="top:850px;font-size:64px"><span class="box">返深圳住 反而貴？！</span></div>
+    ${pair(1010)}
+    <div class="a" style="top:1520px"><span class="tag" style="background:#34d27a;color:#0b0c0e;font-size:46px;transform:rotate(-3deg)">真實數據計俾你睇</span></div>`
+};
+window.show=k=>{document.getElementById('c').innerHTML=V[k]};
+</script></body></html>
