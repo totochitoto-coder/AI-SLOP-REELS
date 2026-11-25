@@ -1,0 +1,9 @@
+{
+  "provider": "elevenlabs",
+  "voice_name": "Stephanie (ElevenLabs voice library, native HK Cantonese)",
+  "voice_id": "Pi6HrXrDvDZF3ftmE4tC",
+  "model_id": "eleven_v4",
+  "language_code": "yue",
+  "voice_settings": { "stability": 0.05, "similarity_boost": 0.70, "style": 1.0, "speed": 1.05 },
+  "style_notes": "Flirty, teasing narrator. Uses [whispers] [flirty] [giggles] [teasing] [sighs] [laughs] cues. Calls the viewer 靚仔. Playful, never explicit."
+}

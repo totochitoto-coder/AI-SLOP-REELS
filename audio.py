@@ -58,10 +58,10 @@ for sc in script["scenes"]:
     pop = np.sin(2 * np.pi * (500 + 900 * np.exp(-pop_t * 25)) * pop_t) * env(0.18, 0.002, 0.05)
     add(pop * 0.25, start)
     toks = sc["caption"]
-    step = sc["dur"] * 0.85 / len(toks)
-    for i in range(len(toks)):
+    times = sc.get("tokenTimes") or [i * sc["dur"] * 0.85 / len(toks) for i in range(len(toks))]
+    for tt in times:
         tick = np.sin(2 * np.pi * 1800 * np.arange(int(0.03 * SR)) / SR) * env(0.03, 0.001, 0.008)
-        add(tick * 0.08, start + i * step)
+        add(tick * 0.05, start + tt)
     start += sc["dur"]
 
 # fade in/out and normalise

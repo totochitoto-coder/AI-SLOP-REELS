@@ -65,11 +65,20 @@ function person(color, h = 180) {
 function popIn(lt, s, d = 0.45) { const p = inn(lt, s, d); return { op: clamp(p * 2), s: back(p) }; }
 function fadeUp(lt, s, d = 0.4) { const p = ease(inn(lt, s, d)); return { op: p, ty: (1 - p) * 30 }; }
 
-function caption(tokens, lt, dur) {
-  const span = dur * 0.85, n = tokens.length;
-  const cur = Math.min(n - 1, Math.floor(lt / (span / n)));
-  return `<div class="caption">` + tokens.map((t, i) =>
-    `<span class="tok ${i < cur ? 'past' : i === cur ? 'cur' : ''}">${t}</span>`).join('') + `</div>`;
+function caption(sc, lt) {
+  const tokens = sc.caption, n = tokens.length;
+  const times = sc.tokenTimes || tokens.map((_, i) => i * sc.dur * 0.85 / n);
+  let cur = 0;
+  for (let i = 0; i < n; i++) if (lt >= times[i]) cur = i;
+  // show one short phrase at a time: split after punctuation, merge tiny groups
+  const groups = []; let g = [], len = 0;
+  tokens.forEach((t, i) => {
+    g.push(i); len += t.length;
+    if ((/[，。！？～…,!?]$/.test(t) && len >= 6) || i === n - 1) { groups.push(g); g = []; len = 0; }
+  });
+  const grp = groups.find(gr => gr.includes(cur)) || groups[0];
+  return `<div class="caption">` + grp.map(i =>
+    `<span class="tok ${i < cur ? 'past' : i === cur ? 'cur' : ''}">${tokens[i]}</span>`).join('') + `</div>`;
 }
 
 function vsPair(S, lt, start, y = 640, size = 200) {
@@ -94,7 +103,7 @@ const SCENES = {
   },
   stat(S, sc, lt) {
     const side = S.sides[sc.side];
-    const p = ease(inn(lt, 0.6, 1.4));
+    const p = ease(inn(lt, sc.countTime ?? 0.6, 1.2));
     let h = el(person(side.color, 170), 360, 470, popIn(lt, 0.1));
     if (sc.side === 'a') {
       const b = popIn(lt, 0.35);
@@ -103,7 +112,7 @@ const SCENES = {
     }
     h += el(`<div class="big" style="color:${side.color}">${sc.prefix}${fmt(sc.value * p)}</div>`, 360, 780, fadeUp(lt, 0.5))
       + el(`<div class="label">${sc.label}</div>`, 360, 880, fadeUp(lt, 0.8));
-    if (sc.tag) h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e">${sc.tag}</div>`, 360, 990, { ...popIn(lt, 2.4), rot: -3 });
+    if (sc.tag) h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e">${sc.tag}</div>`, 360, 990, { ...popIn(lt, sc.cueTime ?? 2.4), rot: -3 });
     return h + `<div class="foot">${S.footnote}</div>`;
   },
   route(S, sc, lt) {
@@ -119,8 +128,8 @@ const SCENES = {
       + el(`<div class="label" style="letter-spacing:2px;font-size:28px">${lbl}</div>`, x, y + 60, popIn(lt, s));
     h += node(x1, sc.from, S.sides.b.color, 0.2) + node(xm, sc.via, '#8b9098', 0.8) + node(x2, sc.to, S.sides.a.color, 1.3);
     if (lt > 1.2) h += el(person('#fff', 70), dotX, y - 70, { op: 1 });
-    h += el(`<div class="headline" style="font-size:44px">${sc.line1}</div>`, 360, 800, fadeUp(lt, 2.0))
-      + el(`<div class="headline" style="font-size:56px;color:var(--red)">${sc.line2}</div>`, 360, 900, popIn(lt, 3.4));
+    h += el(`<div class="headline" style="font-size:44px">${sc.line1}</div>`, 360, 800, fadeUp(lt, sc.cue1Time ?? 2.0))
+      + el(`<div class="headline" style="font-size:56px;color:var(--red)">${sc.line2}</div>`, 360, 900, popIn(lt, sc.cue2Time ?? 3.4));
     return h + `<div class="foot">${S.footnote}</div>`;
   },
   bars(S, sc, lt) {
@@ -133,7 +142,7 @@ const SCENES = {
       + el(`<div class="headline" style="font-size:40px;color:${S.sides.b.color}">$${fmt(sc.b * gb + sc.bExtra * gx)}</div>`, 500, base - hb - hx - 46, { op: gb });
     if (gx > 0.3) h += el(`<div class="label" style="color:#fff;letter-spacing:2px">+${sc.bExtraLabel}</div>`, 500, base - hb - hx / 2 - 3, { op: gx });
     h += el(`<div class="label">${S.sides.a.label}</div>`, 220, base + 40, { op: 1 }) + el(`<div class="label">${S.sides.b.label}</div>`, 500, base + 40, { op: 1 });
-    h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e;font-size:42px">${sc.result}</div>`, 360, 1110, { ...popIn(lt, 3.3), rot: -2 });
+    h += el(`<div class="tag" style="background:var(--green);color:#0b0c0e;font-size:42px">${sc.result}</div>`, 360, 1110, { ...popIn(lt, sc.cueTime ?? 3.3), rot: -2 });
     return h + `<div class="foot" style="bottom:40px">${S.footnote}</div>`;
   },
   clock(S, sc, lt) {
@@ -143,11 +152,11 @@ const SCENES = {
       <line x1="50" y1="50" x2="50" y2="20" stroke="#e5484d" stroke-width="6" stroke-linecap="round" transform="rotate(${ang} 50 50)"/>
       <line x1="50" y1="50" x2="70" y2="50" stroke="#f4f4f5" stroke-width="6" stroke-linecap="round" transform="rotate(${ang / 12} 50 50)"/>
       <circle cx="50" cy="50" r="5" fill="#f4f4f5"/></svg>`;
-    const p = ease(inn(lt, 0.8, 1.6));
+    const p = ease(inn(lt, sc.countTime ?? 0.8, 1.4));
     return el(clock, 360, 480, popIn(lt, 0.1))
       + el(`<div class="big" style="color:var(--red)">${fmt(sc.value * p)}</div>`, 360, 740, fadeUp(lt, 0.6))
       + el(`<div class="label">${sc.label}</div>`, 360, 840, fadeUp(lt, 0.9))
-      + el(`<div class="tag" style="background:#f5b83d;color:#0b0c0e;font-size:46px">${sc.punch}</div>`, 360, 990, { ...popIn(lt, 3.3), rot: 2 })
+      + el(`<div class="tag" style="background:#f5b83d;color:#0b0c0e;font-size:46px">${sc.punch}</div>`, 360, 990, { ...popIn(lt, sc.cueTime ?? 3.3), rot: 2 })
       + `<div class="foot">${S.footnote}</div>`;
   },
   outro(S, sc, lt) {
@@ -170,7 +179,7 @@ window.renderFrame = t => {
   // short crossfade at scene edges
   const fade = Math.min(clamp(lt / 0.15), clamp((sc.dur - lt) / 0.15));
   document.getElementById('layer').style.opacity = sc === S.scenes[S.scenes.length - 1] ? clamp(lt / 0.15) : fade;
-  document.getElementById('layer').innerHTML = SCENES[sc.type](S, sc, lt) + caption(sc.caption, lt, sc.dur);
+  document.getElementById('layer').innerHTML = SCENES[sc.type](S, sc, lt) + caption(sc, lt);
 };
 </script>
 </body>

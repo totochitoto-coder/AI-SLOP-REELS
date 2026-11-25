@@ -51,5 +51,14 @@ await browser.close();
 // audio bed + sfx, then mux
 const wav = outPath.replace(/\.mp4$/, '.wav');
 execFileSync('python3', ['-I', resolve(here, 'audio.py'), scriptPath, wav], { stdio: 'inherit' });
-execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', silent, '-i', wav, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-shortest', outPath], { stdio: 'inherit' });
+const vi = args.indexOf('--voice');
+if (vi >= 0) {
+  // voice on top, music ducked underneath it
+  const filter = '[1:a]volume=0.45[m];[2:a]asplit=2[v][sc];[m][sc]sidechaincompress=threshold=0.02:ratio=8:attack=15:release=350[md];'
+    + '[md][v]amix=inputs=2:normalize=0,alimiter=limit=0.95[a]';
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', silent, '-i', wav, '-i', resolve(args[vi + 1]), '-filter_complex', filter,
+    '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-shortest', outPath], { stdio: 'inherit' });
+} else {
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', silent, '-i', wav, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-shortest', outPath], { stdio: 'inherit' });
+}
 console.log(`done: ${outPath} (${total.toFixed(1)}s)`);
