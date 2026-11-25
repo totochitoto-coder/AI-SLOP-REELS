@@ -112,6 +112,8 @@ const SCENES = {
   vs_intro(S, sc, lt) {
     const bub = `<div style="position:relative;background:#fff;color:#0b0c0e;font-weight:900;font-size:34px;padding:12px 26px;border-radius:26px;white-space:nowrap">問你呀～
       <div style="position:absolute;left:24px;bottom:-18px;border-left:12px solid transparent;border-right:16px solid transparent;border-top:22px solid #fff"></div></div>`;
+    if (!S.host) return el(`<div class="headline" style="color:var(--green)">${sc.headline}</div>`, 360, 380, fadeUp(lt, 0.1))
+      + vsPair(S, lt, 0.5);
     return el(girl(S.host.color, 260), 330, 500, popIn(lt, 0.1))
       + el(hostTag(S, 34), 330, 670, popIn(lt, 0.3))
       + el(bub, 520, 340, { ...popIn(lt, 0.6), rot: -4 })
@@ -184,7 +186,7 @@ const SCENES = {
   },
   outro(S, sc, lt) {
     return el(`<div class="headline">${sc.headline}</div>`, 360, 380, fadeUp(lt, 0.1))
-      + el(girl(S.host.color, 120), 300, 1150, popIn(lt, 2.0)) + el(hostTag(S, 28), 420, 1180, popIn(lt, 2.2))
+      + (S.host ? el(girl(S.host.color, 120), 300, 1150, popIn(lt, 2.0)) + el(hostTag(S, 28), 420, 1180, popIn(lt, 2.2)) : '')
       + vsPair(S, lt, 0.4)
       + el(`<div class="pill">${sc.pill1}</div>`, 360, 950, popIn(lt, 1.2))
       + el(`<div class="pill dark">${sc.pill2}</div>`, 360, 1020, popIn(lt, 1.6));
