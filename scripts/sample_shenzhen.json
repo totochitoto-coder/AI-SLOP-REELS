@@ -21,10 +21,9 @@
     {
       "type": "vs_intro",
       "dur": 3.5,
-      "narration": "[whispers] 喂……靚仔，Chloe 而家問你呀。[flirty] 住劏房定返深圳住，邊個慳啲？",
+      "narration": "[whispers] 喂～Chloe 而家問你呀。[flirty] 住劏房定返深圳住，邊個慳啲？",
       "caption": [
-        "喂……",
-        "靚仔，",
+        "喂～",
         "Chloe",
         "而家",
         "問你呀。",
@@ -168,7 +167,7 @@
       "headline": "<span style=\"color:var(--green)\">住大屋</span> 定 <span style=\"color:var(--red)\">慳時間</span>？",
       "pill1": "Send 俾個成日話要搬返深圳嘅朋友",
       "pill2": "留言話俾 Chloe 知：劏房 / 深圳",
-      "narration": "[teasing] 不過深圳間屋，大好多㗎。咁你會揀邊個呀？[giggles] 留言話俾 Chloe 知啦，靚仔～",
+      "narration": "[teasing] 不過深圳間屋，大好多㗎。咁你會揀邊個呀？[giggles] 留言話俾 Chloe 知啦～",
       "caption": [
         "不過",
         "深圳",
@@ -179,8 +178,7 @@
         "留言",
         "話俾",
         "Chloe",
-        "知啦，",
-        "靚仔～"
+        "知啦～"
       ]
     }
   ]
