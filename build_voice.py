@@ -7,6 +7,7 @@ Usage: python3 build_voice.py <script.json> <workdir>
 Writes <workdir>/timed.json (script with dur/tokenTimes/cue times) and <workdir>/voice.wav.
 """
 import base64
+import hashlib
 import json
 import os
 import re
@@ -19,7 +20,7 @@ import numpy as np
 
 SR = 44100
 LEAD = 0.15   # silence before each scene's line
-TAIL = 0.45   # breathing room after each line
+TAIL = 0.30   # breathing room after each line
 KEY = os.environ.get("ELEVENLABS_API_KEY") or "proxy-injected"  # proxy injects the real key in this environment
 
 script_path, work = sys.argv[1], sys.argv[2]
@@ -31,9 +32,10 @@ os.makedirs(os.path.join(work, "voice"), exist_ok=True)
 PUNCT = re.compile(r"[\s，。！？、…～~,.!?$＄：:「」]")
 
 
-def tts(text, prev_text, next_text):
+def tts(text, prev_text, next_text, overrides=None):
+    vs = {**cfg["voice_settings"], **(overrides or {})}
     body = {"text": text, "model_id": cfg["model_id"], "language_code": cfg["language_code"],
-            "voice_settings": cfg["voice_settings"]}
+            "voice_settings": vs}
     if prev_text:
         body["previous_text"] = prev_text
     if next_text:
@@ -46,8 +48,12 @@ def tts(text, prev_text, next_text):
         sys.exit(f"TTS failed ({e.code}): {e.read().decode()[:300]}")
 
 
+TEMPO = float(cfg.get("tempo", 1.0))  # extra speed-up after TTS (pitch preserved)
+
+
 def decode(mp3_path):
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", mp3_path, "-f", "s16le", "-ac", "1", "-ar", str(SR), "-"],
+    af = ["-af", f"atempo={TEMPO}"] if TEMPO != 1.0 else []
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", mp3_path, *af, "-f", "s16le", "-ac", "1", "-ar", str(SR), "-"],
                          capture_output=True, check=True).stdout
     return np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768
 
@@ -123,12 +129,22 @@ scenes = S["scenes"]
 for n, sc in enumerate(scenes):
     prev_text = scenes[n - 1].get("narration", "") if n else ""
     next_text = scenes[n + 1].get("narration", "") if n + 1 < len(scenes) else ""
-    res = tts(sc["narration"], prev_text, next_text)
+    # cache: only call the API when this line (or its voice settings) changed
+    key = hashlib.sha1(json.dumps([sc["narration"], prev_text, next_text, cfg["voice_id"], cfg["model_id"],
+                                   cfg["voice_settings"], sc.get("voice_overrides")], ensure_ascii=False).encode()).hexdigest()
+    cache = os.path.join(work, "voice", f"scene{n + 1}.json")
+    cached = json.load(open(cache)) if os.path.exists(cache) else {}
+    if cached.get("key") == key:
+        res = cached["res"]
+    else:
+        res = tts(sc["narration"], prev_text, next_text, sc.get("voice_overrides"))
+        json.dump({"key": key, "res": res}, open(cache, "w"))
     mp3 = os.path.join(work, "voice", f"scene{n + 1}.mp3")
     open(mp3, "wb").write(base64.b64decode(res["audio_base64"]))
     pcm = decode(mp3)
     al = res.get("alignment") or res.get("normalized_alignment") or {}
-    chars, starts = al.get("characters", []), al.get("character_start_times_seconds", [])
+    chars = al.get("characters", [])
+    starts = [x / TEMPO for x in al.get("character_start_times_seconds", [])]
     if "caption" not in sc:
         sc["caption"] = auto_caption(sc["narration"])
     tt = token_times(sc["caption"], chars, starts)
