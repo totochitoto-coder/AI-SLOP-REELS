@@ -183,5 +183,18 @@
       ]
     }
   ],
-  "voice": "chloe"
+  "voice": "chloe",
+  "thumbnail": {
+    "title": "<span style=\"color:#f5b83d\">劏房</span> vs <span style=\"color:#3cc8e8\">深圳</span>",
+    "titleSize": 100,
+    "big": "+$900",
+    "bigSize": 300,
+    "boxed": "返深圳住 反而貴？！",
+    "pill": "真實數據計俾你睇",
+    "pillBg": "#34d27a"
+  },
+  "post": {
+    "instagram": "住劏房 vs 返深圳住，邊個真係慳啲？🤔\n計埋車錢同時間……答案可能令你意外 😳\n就算慳到錢，都唔夠買個 Dior 俾 Chloe 💅\n\n留言話俾 Chloe 知你揀邊個 👇\n🟡 劏房 定 🔵 深圳？\n\n資料：差估署 2026 Q2 劏房租金中位數、港鐵八達通車費；深圳租金及匯率為約數\n\n#香港 #劏房 #深圳 #港人 #返深圳 #跨境通勤 #慳錢 #香港生活 #廣東話 #打工仔",
+    "tiktok": "住劏房定返深圳住，邊個慳啲？🤔 留言話俾 Chloe 知 👇 #香港 #劏房 #深圳 #港人 #返深圳 #慳錢 #廣東話 #香港生活"
+  }
 }

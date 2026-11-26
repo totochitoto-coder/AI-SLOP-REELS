@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1920px;font-family:"Noto Sans CJK HK",sans-serif;color:#f4f4f5;background:#0b0c0e}
+.c{width:1080px;height:1920px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:46px;
+ padding:260px 60px 300px;background:radial-gradient(ellipse 75% 45% at 50% 30%,#2c2e34 0%,#141518 55%,#0b0c0e 100%);text-align:center}
+.t{font-weight:900;line-height:1.1;white-space:nowrap}
+.box{display:inline-block;outline:6px solid #fff;outline-offset:10px;position:relative;padding:0 14px}
+.box:before,.box:after{content:"";position:absolute;width:20px;height:20px;background:#fff;border-radius:50%}
+.box:before{left:-26px;top:-26px}.box:after{right:-26px;bottom:-26px}
+.pill{display:inline-block;font-weight:900;padding:14px 40px;border-radius:22px;font-size:46px}
+.lbl{font-weight:700;font-size:40px;letter-spacing:4px;color:#c9ccd1;margin-top:18px}
+</style></head><body><div class="c" id="c"></div>
+<script>
+const P=(c,h)=>`<svg width="${h*.62}" height="${h}" viewBox="0 0 62 100"><circle cx="31" cy="13" r="12" fill="${c}"/><rect x="9" y="29" width="44" height="40" rx="12" fill="${c}"/><rect x="15" y="62" width="11" height="36" rx="5" fill="${c}"/><rect x="36" y="62" width="11" height="36" rx="5" fill="${c}"/></svg>`;
+window.show = (S) => {
+  const T = S.thumbnail, a = S.sides.a, b = S.sides.b; let h = '';
+  if (T.kicker) h += `<div class="t" style="font-size:64px;color:#34d27a">${T.kicker}</div>`;
+  if (T.title) h += `<div class="t" style="font-size:${T.titleSize || 110}px">${T.title}</div>`;
+  if (T.big) h += `<div class="t" style="font-size:${T.bigSize || 260}px;color:${T.bigColor || '#e5484d'};letter-spacing:-4px">${T.big}</div>`;
+  if (T.boxed) h += `<div class="t" style="font-size:${T.boxedSize || 72}px;margin-top:10px"><span class="box">${T.boxed}</span></div>`;
+  if (T.pair !== false) h += `<div style="display:flex;align-items:flex-end;gap:70px;margin-top:20px">
+    <div>${P(a.color, T.pairSize || 300)}<div class="lbl">${a.label}</div></div>
+    <div class="t" style="font-size:110px;color:#5b5f66;margin-bottom:130px">VS</div>
+    <div>${P(b.color, T.pairSize || 300)}<div class="lbl">${b.label}</div></div></div>`;
+  if (T.pill) h += `<div class="pill" style="background:${T.pillBg || '#f4f4f5'};color:#0b0c0e;transform:rotate(${T.pillRot ?? -2}deg)">${T.pill}</div>`;
+  document.getElementById('c').innerHTML = h;
+};
+</script></body></html>
