@@ -24,8 +24,8 @@ KEY = os.environ.get("ELEVENLABS_API_KEY") or "proxy-injected"  # proxy injects 
 
 script_path, work = sys.argv[1], sys.argv[2]
 here = os.path.dirname(os.path.abspath(__file__))
-cfg = json.load(open(os.path.join(here, "config", "voice.json"), encoding="utf-8"))
 S = json.load(open(script_path, encoding="utf-8"))
+cfg = json.load(open(os.path.join(here, "config", "voices", S.get("voice", "chloe") + ".json"), encoding="utf-8"))
 os.makedirs(os.path.join(work, "voice"), exist_ok=True)
 
 PUNCT = re.compile(r"[\s，。！？、…～~,.!?$＄：:「」]")
@@ -50,6 +50,50 @@ def decode(mp3_path):
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", mp3_path, "-f", "s16le", "-ac", "1", "-ar", str(SR), "-"],
                          capture_output=True, check=True).stdout
     return np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768
+
+
+TAG = re.compile(r"\[[^\]]*\]")
+CLAUSE_END = "，。！？、…～：,.!?"
+
+
+def auto_caption(narration, max_len=5):
+    """Split spoken text into short caption chunks; English words stay whole, punctuation sticks to the chunk."""
+    text = TAG.sub("", narration).strip()
+    units = re.findall(r"[A-Za-z][A-Za-z0-9']*(?:\s+\d+)?|\d+|[零一二三四五六七八九十百千萬兩]+|[^\sA-Za-z\d]", text)
+    out, cur = [], ""
+    for u in units:
+        if u in CLAUSE_END:
+            cur += u
+            if cur.strip(CLAUSE_END):
+                out.append(cur)
+            elif out:
+                out[-1] += u
+            cur = ""
+            continue
+        if re.match(r"[A-Za-z]", u):
+            if cur:
+                out.append(cur)
+            out.append(u); cur = ""
+            continue
+        cur += u
+        if len(cur) >= max_len and not re.match(r"[零一二三四五六七八九十百千萬兩]+$", u[-1:]):
+            out.append(cur); cur = ""
+    if cur:
+        out.append(cur)
+    # glue a trailing punctuation-only piece or a dangling single char to its neighbour
+    merged = []
+    for t in out:
+        if merged and (len(PUNCT.sub("", t)) <= 1 and not re.match(r"[A-Za-z]", t)) and not re.match(r"[A-Za-z]", merged[-1]):
+            merged[-1] += t
+        else:
+            merged.append(t)
+    return merged
+
+
+def phrase_time(phrase, chars, starts):
+    spoken = "".join(chars)
+    i = spoken.find(phrase)
+    return starts[i] if i >= 0 else None
 
 
 def token_times(tokens, chars, starts):
@@ -85,13 +129,23 @@ for n, sc in enumerate(scenes):
     pcm = decode(mp3)
     al = res.get("alignment") or res.get("normalized_alignment") or {}
     chars, starts = al.get("characters", []), al.get("character_start_times_seconds", [])
+    if "caption" not in sc:
+        sc["caption"] = auto_caption(sc["narration"])
     tt = token_times(sc["caption"], chars, starts)
     voice_len = len(pcm) / SR
     sc["minDur"] = sc.get("minDur", sc["dur"])
     sc["dur"] = round(max(sc["minDur"], LEAD + voice_len + TAIL), 3)
     sc["tokenTimes"] = [round(LEAD + t, 3) for t in tt]
-    for k in ("cue", "cue1", "cue2", "count"):  # token index -> spoken time
-        if k in sc:
+    for k in ("cue", "cue1", "cue2", "count"):  # token index or spoken phrase -> time
+        if k not in sc:
+            continue
+        if isinstance(sc[k], str):
+            t = phrase_time(sc[k], chars, starts)
+            if t is None:
+                print(f"  warning: cue phrase {sc[k]!r} not found in scene {n + 1}")
+                continue
+            sc[k + "Time"] = round(LEAD + t, 3)
+        else:
             sc[k + "Time"] = sc["tokenTimes"][sc[k]]
     track.append((t0 + LEAD, pcm))
     print(f"scene {n + 1}: voice {voice_len:.1f}s -> scene {sc['dur']:.1f}s")

@@ -1,0 +1,14 @@
+{
+  "provider": "elevenlabs",
+  "voice_name": "Suuny Su (ElevenLabs voice library, native HK Cantonese male)",
+  "voice_id": "pu1tF8vhX5qEx1v7a6UV",
+  "model_id": "eleven_v4",
+  "language_code": "yue",
+  "voice_settings": {
+    "stability": 0.05,
+    "similarity_boost": 0.7,
+    "style": 1.0,
+    "speed": 1.2
+  },
+  "style_notes": "'Sunny D' max-energy setting. Hype storyteller. Uses [excited] [gasps] [sarcastic] [laughs] cues."
+}
